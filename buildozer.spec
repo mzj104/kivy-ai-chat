@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,kivymd,openai,requests,tinydb,markdown,plyer
+requirements = python3,kivy,kivymd,cython,openai,requests,tinydb,markdown,plyer
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -107,7 +107,7 @@ android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.minapi = 21
 
 # (int) Android SDK version to use
-android.sdk = 33
+#android.sdk = 33
 
 # (str) Android NDK version to use
 android.ndk = 25b

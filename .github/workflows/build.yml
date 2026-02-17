@@ -73,9 +73,9 @@ jobs:
           ssh \
           libsqlite3-dev
 
-    - name: Install buildozer
+    - name: Install Cython and buildozer
       run: |
-        pip install buildozer
+        pip install cython buildozer
         buildozer --version
 
     - name: Display buildozer configuration
