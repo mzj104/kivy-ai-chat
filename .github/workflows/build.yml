@@ -3,18 +3,13 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - '**.py'
-      - 'requirements.txt'
-      - 'buildozer.spec'
-      - '.github/workflows/**'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout code
@@ -30,20 +25,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
-
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
-    - name: Cache Buildozer
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.buildozer
-          ~/.gradle
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
+        java-version: '11'
 
     - name: Install system dependencies
       run: |
@@ -69,29 +51,28 @@ jobs:
           libpq-dev \
           libmysqlclient-dev \
           unixodbc-dev \
-          lrzsz \
-          ssh \
-          libsqlite3-dev \
           zip \
-          unzip
+          unzip \
+          openjdk-11-jdk
 
     - name: Install buildozer
       run: |
         pip install cython buildozer
         buildozer --version
 
-    - name: Display buildozer configuration
-      run: |
-        echo "=== Buildozer Spec ==="
-        cat buildozer.spec
+    - name: Cache Buildozer
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          ~/.gradle
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
 
     - name: Build APK
       run: |
-        echo "Starting APK build..."
         buildozer android debug
-      env:
-        ANDROID_HOME: /usr/local/lib/android/sdk
-        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -106,8 +87,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: build-logs
-        path: |
-          .buildozer/
-          *.log
+        path: .buildozer/
         retention-days: 7
         if-no-files-found: warn
