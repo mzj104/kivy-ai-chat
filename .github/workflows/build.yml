@@ -25,7 +25,16 @@ jobs:
         python-version: '3.10'
         cache: 'pip'
 
-    - name: Cache Buildozer global cache
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Cache Buildozer
       uses: actions/cache@v4
       with:
         path: |
@@ -34,16 +43,6 @@ jobs:
         key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
           ${{ runner.os }}-buildozer-
-
-    - name: Cache Android SDK
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.buildozer/android/platform
-          ~/.buildozer/android/packages
-        key: ${{ runner.os }}-android-sdk-${{ hashFiles('buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-android-sdk-
 
     - name: Install system dependencies
       run: |
@@ -71,9 +70,11 @@ jobs:
           unixodbc-dev \
           lrzsz \
           ssh \
-          libsqlite3-dev
+          libsqlite3-dev \
+          zip \
+          unzip
 
-    - name: Install Cython and buildozer
+    - name: Install buildozer
       run: |
         pip install cython buildozer
         buildozer --version
@@ -87,6 +88,9 @@ jobs:
       run: |
         echo "Starting APK build..."
         buildozer android debug
+      env:
+        ANDROID_HOME: /usr/local/lib/android/sdk
+        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -94,6 +98,7 @@ jobs:
         name: android-apk
         path: bin/*.apk
         retention-days: 30
+        if-no-files-found: warn
 
     - name: Upload build logs
       if: always()
@@ -104,3 +109,4 @@ jobs:
           .buildozer/
           *.log
         retention-days: 7
+        if-no-files-found: warn
