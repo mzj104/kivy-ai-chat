@@ -11,9 +11,6 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-env:
-  BUILD_CACHE_KEY: ${{ runner.os }}-buildozer-cache
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,9 +31,9 @@ jobs:
         path: |
           ~/.buildozer
           ~/.gradle
-        key: ${{ env.BUILD_CACHE_KEY }}-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
-          ${{ env.BUILD_CACHE_KEY }}-
+          ${{ runner.os }}-buildozer-
 
     - name: Cache Android SDK
       uses: actions/cache@v4
@@ -44,9 +41,9 @@ jobs:
         path: |
           ~/.buildozer/android/platform
           ~/.buildozer/android/packages
-        key: android-sdk-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-android-sdk-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
-          android-sdk-
+          ${{ runner.os }}-android-sdk-
 
     - name: Install system dependencies
       run: |
