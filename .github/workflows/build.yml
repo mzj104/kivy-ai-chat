@@ -7,10 +7,12 @@ on:
       - '**.py'
       - 'requirements.txt'
       - 'buildozer.spec'
-      - '.github/workflows/build.yml'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+
+env:
+  BUILD_CACHE_KEY: ${{ runner.os }}-buildozer-cache
 
 jobs:
   build:
@@ -24,21 +26,30 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
+        cache: 'pip'
 
-    - name: Install buildozer
-      run: |
-        pip install buildozer
-        buildozer --version
+    - name: Cache Buildozer global cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          ~/.gradle
+        key: ${{ env.BUILD_CACHE_KEY }}-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ env.BUILD_CACHE_KEY }}-
 
-    - name: Display buildozer log
-      if: always()
-      run: |
-        ls -la
-        cat buildozer.spec
+    - name: Cache Android SDK
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer/android/platform
+          ~/.buildozer/android/packages
+        key: android-sdk-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          android-sdk-
 
-    - name: Download Android SDK
+    - name: Install system dependencies
       run: |
-        echo "Installing Android dependencies..."
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -56,13 +67,29 @@ jobs:
           automake \
           libtool \
           libfreetype6-dev \
-          libssl-dev
+          libssl-dev \
+          autoconf \
+          libpq-dev \
+          libmysqlclient-dev \
+          unixodbc-dev \
+          lrzsz \
+          ssh \
+          libsqlite3-dev
+
+    - name: Install buildozer
+      run: |
+        pip install buildozer
+        buildozer --version
+
+    - name: Display buildozer configuration
+      run: |
+        echo "=== Buildozer Spec ==="
+        cat buildozer.spec
 
     - name: Build APK
       run: |
         echo "Starting APK build..."
         buildozer android debug
-      continue-on-error: true
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -76,5 +103,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: build-logs
-        path: .buildozer/
+        path: |
+          .buildozer/
+          *.log
         retention-days: 7
