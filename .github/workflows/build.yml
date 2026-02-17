@@ -48,12 +48,24 @@ jobs:
           libfreetype6-dev \
           libssl-dev \
           autoconf \
-          libpq-dev \
-          libmysqlclient-dev \
-          unixodbc-dev \
           zip \
           unzip \
           openjdk-11-jdk
+
+    - name: Install Android command line tools
+      run: |
+        mkdir -p ~/android-sdk
+        cd ~/android-sdk
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip -q commandlinetools-linux-9477386_latest.zip
+        rm commandlinetools-linux-9477386_latest.zip
+
+    - name: Install Android SDK components
+      run: |
+        export ANDROID_HOME=~/android-sdk
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        yes | sdkmanager --licenses
+        sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools"
 
     - name: Install buildozer
       run: |
@@ -65,13 +77,15 @@ jobs:
       with:
         path: |
           ~/.buildozer
-          ~/.gradle
+          ~/android-sdk
         key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
           ${{ runner.os }}-buildozer-
 
     - name: Build APK
       run: |
+        export ANDROID_HOME=~/android-sdk
+        export ANDROID_SDK_ROOT=~/android-sdk
         buildozer android debug
 
     - name: Upload APK
