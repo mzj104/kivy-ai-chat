@@ -1,0 +1,23 @@
+# Kivy
+.bin/
+.cache/
+
+# Buildozer
+.buildozer/
+*.apk
+*.aab
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Data
+*.db
+*.json
+!package.json
